@@ -11,6 +11,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -25,12 +26,10 @@ public class ProximitySensor extends Activity implements SensorEventListener {
     float x;
     MySurface s;
     Bitmap Bon,Boff;
-
-    public class MySurface extends SurfaceView implements Runnable {
+    //This class is created for canvas
+    public class MySurface extends SurfaceView {
         SurfaceHolder holder;
-        Canvas canvas;
-        Thread t = null;
-        boolean flag = false;
+        boolean flag = true;
 
         public MySurface(Context context) {
             super(context);
@@ -40,42 +39,42 @@ public class ProximitySensor extends Activity implements SensorEventListener {
 
         public void pause() {
             flag = false;
-            while (true) {
-                try {
-                    t.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+        }//to stop the canvas when it is not on the foreground
 
-        }
 
         public void resume() {
             flag = true;
-            t = new Thread(this);
-            t.start();
-        }
+            new Service().execute();//call for async task to perform the surface view operations
 
-        @Override
-        public void run() {
-            while (flag) {
-                if (!holder.getSurface().isValid())
-                    continue;
-                canvas = holder.lockCanvas();
-                canvas.drawRGB(0, 0, 0);
-                Paint paint8 = new Paint();
-                paint8.setColor(Color.rgb(184, 134, 11));
-                paint8.setTextSize(40);
-                canvas.drawText("Proximity : "+x,125 , 600, paint8);
-                Bon=BitmapFactory.decodeResource(getResources(),R.drawable.bulbon);
-                Boff=BitmapFactory.decodeResource(getResources(),R.drawable.bulboff);
-                if(x==0)
-                    canvas.drawBitmap(Bon,100,20,null);
-                else
-                    canvas.drawBitmap(Boff,100,20,null);
-                holder.unlockCanvasAndPost(canvas);
+        }
+        public class Service extends AsyncTask<Void,Void,Void>
+        {
+            @Override
+            protected Void doInBackground(Void... params) {
+                while (flag) {
+                    if (!holder.getSurface().isValid())//Loop to find the right surface to draw the canvas
+                        continue;
+                    Canvas canvas = holder.lockCanvas();
+                    canvas.drawRGB(0, 0, 0);
+                    Paint paint8 = new Paint();
+                    paint8.setColor(Color.rgb(184, 134, 11));
+                    paint8.setTextSize(40);
+                    canvas.drawText("Proximity : "+x,125 , 600, paint8);
+                    Bon=BitmapFactory.decodeResource(getResources(),R.drawable.bulbon);//to add images to the canvas
+                    Boff=BitmapFactory.decodeResource(getResources(),R.drawable.bulboff);
+                    if(x==0)
+                        canvas.drawBitmap(Bon,100,20,null);
+                    else
+                        canvas.drawBitmap(Boff,100,20,null);
+                    holder.unlockCanvasAndPost(canvas);
+
+                }
+                return null;
             }
         }
+
+
+
     }
 
     @Override
@@ -84,7 +83,7 @@ public class ProximitySensor extends Activity implements SensorEventListener {
         s=new MySurface(this);
         sm = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         Sensor sensor = sm.getDefaultSensor(Sensor.TYPE_PROXIMITY);
-        sm.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+        sm.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);//registering sensor manager
         s.resume();
         x=0;
         setContentView(s);
@@ -92,7 +91,7 @@ public class ProximitySensor extends Activity implements SensorEventListener {
 
     @Override
     protected void onPause() {
-        sm.unregisterListener(this);
+        sm.unregisterListener(this);//unregistering sensor manager
         super.onPause();
         s.pause();
     }
@@ -105,7 +104,7 @@ public class ProximitySensor extends Activity implements SensorEventListener {
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        x=event.values[0];
+        x=event.values[0];//gives the proximity value
 
     }
 
