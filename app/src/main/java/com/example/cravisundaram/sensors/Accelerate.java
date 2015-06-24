@@ -21,6 +21,7 @@ public class Accelerate extends Activity implements SensorEventListener {
     float sx, sy, sz;
     MySurface s;
     SensorManager sm;
+    public static Activity activity=null;
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
@@ -65,7 +66,6 @@ public class Accelerate extends Activity implements SensorEventListener {
                 canvas.drawRGB(218, 165, 32);
 
                 float centerX = canvas.getWidth() / 2;
-                float centerY = canvas.getHeight() / 2;
 
 
                 Paint paint1 = new Paint();
@@ -121,6 +121,7 @@ public class Accelerate extends Activity implements SensorEventListener {
         sm.unregisterListener(this);
         super.onPause();
         s.pause();
+
     }
 
     @Override
@@ -130,11 +131,16 @@ public class Accelerate extends Activity implements SensorEventListener {
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         s = new MySurface(this);
 
-
+        activity=this;
         sm = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         if (sm.getSensorList(Sensor.TYPE_ACCELEROMETER).size() != 0) {
             Sensor sensor = sm.getSensorList(Sensor.TYPE_ACCELEROMETER).get(0);
@@ -143,6 +149,8 @@ public class Accelerate extends Activity implements SensorEventListener {
         sx = sy = sz = 0;
         s.resume();
         setContentView(s);
+
+
     }
 
     @Override

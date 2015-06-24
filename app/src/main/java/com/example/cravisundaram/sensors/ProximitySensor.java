@@ -28,6 +28,7 @@ public class ProximitySensor extends Activity implements SensorEventListener {
 
     public class MySurface extends SurfaceView implements Runnable {
         SurfaceHolder holder;
+        Canvas canvas;
         Thread t = null;
         boolean flag = false;
 
@@ -60,7 +61,7 @@ public class ProximitySensor extends Activity implements SensorEventListener {
             while (flag) {
                 if (!holder.getSurface().isValid())
                     continue;
-                Canvas canvas = holder.lockCanvas();
+                canvas = holder.lockCanvas();
                 canvas.drawRGB(0, 0, 0);
                 Paint paint8 = new Paint();
                 paint8.setColor(Color.rgb(184, 134, 11));
